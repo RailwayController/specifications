@@ -1,0 +1,80 @@
+; SPDX-FileCopyrightText: 2022 Sidings Media <contact@sidingsmedia.com>
+; SPDX-License-Identifier: CC-BY-SA-4.0
+
+; This file describes the specification for commands sent over any
+; medium from the main control node to the individual nodes. These
+; commands will usually be sent by UART, I2C or over socket connections
+
+; Commands
+command         =       1*query CRLF
+                            ; Multiple commands may be sent at once.
+                            ;   CRLF indicates end of commands
+
+query           =       (set / get) [SP addr] %x3B
+                            ; SQL like format. Split queries using ;
+                            ;   Address is only required when sending
+                            ;   commands via an interface card. I.e.
+                            ;   when being sent over the network. It is
+                            ;   not required for direct I2C interfaces.
+                            ;   Also used for commands between client 
+                            ;   interface cards and the main controller
+
+get             =       "get" SP register-addr
+                            ; GET commands used to retrieve data from
+                            ;   registers
+
+set             =       "set" SP register-addr %x3D register-val
+                            ; SET commands used to set the value of a
+                            ;   register
+
+addr            =       "at" SP node-addr
+
+; Command option values
+register-addr   =       string-val
+
+node-val        =       hex-val
+                        / IPv6address
+
+register-val    =       string-val
+                        / bin-val
+                        / bool-val
+                        / hex-val
+                        / int-val
+                        / signed-int-val   
+
+string-val      =       1*(ALPHA / %x2D / %x5F)
+                            ; Only support alphanumeric characters as
+                            ; well as - and _ 
+
+bin-val         =       "0b" 1*BIT
+
+bool-val        =       "true" / "false"
+
+hex-val         =       "0x" 1*HEXDIG
+
+int-val         =       1*DIGIT
+
+signed-int-val  =       [%x2d] int
+
+;IPv6 Address from RFC5954
+IPv6address     =       6( h16 ":" ) ls32
+                        / "::" 5( h16 ":" ) ls32
+                        / [               h16 ] "::" 4( h16 ":" ) ls32
+                        / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+                        / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+                        / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+                        / [ *4( h16 ":" ) h16 ] "::"              ls32
+                        / [ *5( h16 ":" ) h16 ] "::"              h16
+                        / [ *6( h16 ":" ) h16 ] "::"
+
+h16             =       1*4HEXDIG
+
+ls32            =       ( h16 ":" h16 ) / IPv4address
+
+IPv4address     =       dec-octet "." dec-octet "." dec-octet "." dec-octet
+
+dec-octet       =       DIGIT                   ; 0-9
+                        / %x31-39 DIGIT         ; 10-99
+                        / "1" 2DIGIT            ; 100-199
+                        / "2" %x30-34 DIGIT     ; 200-249
+                        / "25" %x30-35          ; 250-255
