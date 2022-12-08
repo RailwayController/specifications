@@ -3,9 +3,25 @@ SPDX-FileCopyrightText: 2022 Sidings Media <contact@sidingsmedia.com>
 SPDX-License-Identifier: CC-BY-SA-4.0
 -->
 
-# Railway Controller
+# Railway Controller - Specification
 
-Template repository
+This repository contains the specifications for communication within the
+railway controller network as well as between the network and client
+devices.
+
+## Formats
+
+### OpenAPI
+
+All HTTP REST APIs used by the project are documented using YAML files
+in the OpenAPI 3 standard. You can find out more about the spec at 
+[spec.openapis.org](https://spec.openapis.org/)
+
+### ABNF
+
+All not HTTP communication (i.e commands and responses) are documented
+using Augmented Backus–Naur form as per [RFC
+5234](https://datatracker.ietf.org/doc/html/rfc5234)
 
 ## Licence
 This repo uses the [REUSE](https://reuse.software) standard in order to
