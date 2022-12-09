@@ -3,7 +3,9 @@
 
 ; This file describes the specification for commands sent over any
 ; medium from the main control node to the individual nodes. These
-; commands will usually be sent by UART, I2C or over socket connections
+; commands will usually be sent by UART, I2C or over socket connections.
+; can also be sent from the client to the main control board when USB is
+; being used instead of the REST API
 
 ; Commands
 command         =       1*query CRLF
@@ -41,6 +43,7 @@ register-val    =       string-val
                         / hex-val
                         / int-val
                         / signed-int-val   
+                        / null-val
 
 string-val      =       1*(ALPHA / %x2D / %x5F)
                             ; Only support alphanumeric characters as
@@ -55,6 +58,8 @@ hex-val         =       "0x" 1*HEXDIG
 int-val         =       1*DIGIT
 
 signed-int-val  =       [%x2d] int
+
+null-val        =       "null"
 
 ;IPv6 Address from RFC5954
 IPv6address     =       6( h16 ":" ) ls32

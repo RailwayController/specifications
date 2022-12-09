@@ -1,0 +1,155 @@
+# SPDX-FileCopyrightText: 2022 Sidings Media <contact@sidingsmedia.com>
+# SPDX-License-Identifier: CC-BY-SA-4.0
+
+openapi: 3.1.0
+info:
+  title: Railway controller control API
+  version: 0.1.0
+  summary: Command and control API to interface with main control node.
+  description: |
+    The main communications method between a client and the network. The
+    API is used by the client as the main way by which to send commands
+    to the main control node via the client bridge. The commands are
+    similar in design to the serial commands used to communicate between
+    nodes over serial connections.
+  license:
+    name: Creative Commons Attribution-ShareAlike 4.0 International
+    identifier: CC-BY-SA-4.0
+
+components:
+  schemas:
+    NodeID:
+      type: string
+      description: |
+        The address of the node to send the command to. This can either
+        be an I2C address for nodes connected directly to the main
+        control node, or an IPv6 address for nodes connected to the
+        Wi-Fi mesh. Any unsafe characters must be encoded when creating
+        request URI.
+
+    RegisterID:
+      type: string
+      description: ID of register the value was fetched from
+
+    RegisterValue:
+      type:
+        - string
+        - integer
+        - null
+      description: |
+        The value held in the register. Note, hex and binary values
+        will be represented as strings.
+
+    GeneralError:
+      type: object
+      properties:
+        code:
+          type: integer
+          format: int32
+          description: Code indicating the nature of the error
+        message:
+          type: string
+          description: Short message providing debug information
+
+    GeneralSuccess:
+      type: object
+      properties:
+        message:
+          type: string
+          description: A message indicating the action that has been taken
+    
+    RegisterResult:
+      type: object
+      properties:
+        register:
+          $ref: "#/components/schemas/RegisterID"
+        value:
+          $ref: "#/components/schemas/RegisterValue"
+
+  responses:
+    NotFound:
+      description: The requested node or register does not exist
+
+    IllegalInput:
+      description: Data is invalid
+
+    GeneralError:
+      description: General Error
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralError"
+    
+    GeneralSuccess:
+      description: General Success
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/GeneralSuccess"
+
+    RegisterResult:
+      description: Value of requested register
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/RegisterResult"
+
+  parameters:
+    NodeID:
+      name: addr
+      in: path
+      schema:
+        $ref: "#/components/schemas/NodeID"
+
+    RegisterID:
+      name: register
+      in: path
+      schema:
+        $ref: "#/components/schemas/RegisterID"
+
+  requestBodies:
+    RegisterValue:
+      description: Value to set register to.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              value:
+                schema:
+                  $ref: "#/components/schemas/RegisterValue"
+      required: true
+
+paths:
+  /node/{addr}/register/{register}:
+    get:
+      summary: Get value of register
+      description: Return the value currently held in the specified register
+      deprecated: false
+      responses:
+        "200":
+          $ref: "#/components/responses/RegisterResult"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/GeneralError"
+    
+    put:
+      summary: Set register value
+      description: Set the value of the register to the specified value
+      deprecated: false
+      requestBody:
+        $ref: "#/components/requestBodies/RegisterValue"
+      responses:
+        "200":
+          $ref: "#/components/responses/GeneralSuccess"
+        "400":
+          $ref: "#/components/responses/IllegalInput"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        default:
+          $ref: "#/components/responses/GeneralError"
+    parameters:
+      - $ref: "#/components/parameters/NodeID"
+      - $ref: "#/components/parameters/RegisterID"
+    
