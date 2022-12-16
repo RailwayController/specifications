@@ -1,0 +1,59 @@
+; SPDX-FileCopyrightText: 2022 Sidings Media <contact@sidingsmedia.com>
+; SPDX-License-Identifier: CC-BY-SA-4.0
+
+; Specification for commands sent a client and a node over serial links.
+
+; Commands
+
+command         =       (update / interrupt / reset) CRLF
+
+update          =       "update"
+                        ; Indicate that the client would like to provide
+                        ;   a firmware file to update the board
+
+interrupt       =       CHAR
+                        ; Any key to cancel normal boot seq and enter
+                        ;   bootloader interface
+
+reset           =       "reset"
+                        ; Reset the boards microcontroller
+
+; Command option values
+string-val      =       1*(ALPHA / %x2D / %x5F)
+                            ; Only support alphanumeric characters as
+                            ; well as - and _ 
+
+bin-val         =       "0b" 1*BIT
+
+bool-val        =       "true" / "false"
+
+hex-val         =       "0x" 1*HEXDIG
+
+int-val         =       1*DIGIT
+
+signed-int-val  =       [%x2d] int-val
+
+null-val        =       "null"
+
+;IPv6 Address from RFC5954
+IPv6address     =       6( h16 ":" ) ls32
+                        / "::" 5( h16 ":" ) ls32
+                        / [               h16 ] "::" 4( h16 ":" ) ls32
+                        / [ *1( h16 ":" ) h16 ] "::" 3( h16 ":" ) ls32
+                        / [ *2( h16 ":" ) h16 ] "::" 2( h16 ":" ) ls32
+                        / [ *3( h16 ":" ) h16 ] "::"    h16 ":"   ls32
+                        / [ *4( h16 ":" ) h16 ] "::"              ls32
+                        / [ *5( h16 ":" ) h16 ] "::"              h16
+                        / [ *6( h16 ":" ) h16 ] "::"
+
+h16             =       1*4HEXDIG
+
+ls32            =       ( h16 ":" h16 ) / IPv4address
+
+IPv4address     =       dec-octet "." dec-octet "." dec-octet "." dec-octet
+
+dec-octet       =       DIGIT                   ; 0-9
+                        / %x31-39 DIGIT         ; 10-99
+                        / "1" 2DIGIT            ; 100-199
+                        / "2" %x30-34 DIGIT     ; 200-249
+                        / "25" %x30-35          ; 250-255

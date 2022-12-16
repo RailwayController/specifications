@@ -1,25 +1,15 @@
 ; SPDX-FileCopyrightText: 2022 Sidings Media <contact@sidingsmedia.com>
 ; SPDX-License-Identifier: CC-BY-SA-4.0
 
-; This file describes the specification for commands sent over any
-; medium from the main control node to the individual nodes. These
-; commands will usually be sent by UART, I2C or over socket connections.
-; can also be sent from the client to the main control board when USB is
-; being used instead of the REST API
+; Specification for commands sent between nodes over serial links.
 
 ; Commands
-command         =       1*query CRLF
-                            ; Multiple commands may be sent at once.
-                            ;   CRLF indicates end of commands
-
-query           =       (set / get) [SP addr] %x3B
-                            ; SQL like format. Split queries using ;
+command         =       (set / get / reset) [SP addr] CRLF
+                            ; SQL like format. CRLF indicates line end.
                             ;   Address is only required when sending
                             ;   commands via an interface card. I.e.
                             ;   when being sent over the network. It is
                             ;   not required for direct I2C interfaces.
-                            ;   Also used for commands between client 
-                            ;   interface cards and the main controller
 
 get             =       "get" SP register-addr
                             ; GET commands used to retrieve data from
@@ -29,12 +19,16 @@ set             =       "set" SP register-addr %x3D register-val
                             ; SET commands used to set the value of a
                             ;   register
 
+reset           =       "reset"
+                            ; RESET command used to cause system reset
+                            ;   and allow access to bootloader interface
+
 addr            =       "at" SP node-addr
 
 ; Command option values
 register-addr   =       string-val
 
-node-val        =       hex-val
+node-addr       =       hex-val
                         / IPv6address
 
 register-val    =       string-val
@@ -57,7 +51,7 @@ hex-val         =       "0x" 1*HEXDIG
 
 int-val         =       1*DIGIT
 
-signed-int-val  =       [%x2d] int
+signed-int-val  =       [%x2d] int-val
 
 null-val        =       "null"
 
